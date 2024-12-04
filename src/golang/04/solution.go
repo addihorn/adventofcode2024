@@ -62,51 +62,44 @@ func part1() {
 		down_ok := y+3 <= sizeData.MaxY
 
 		//check directly left
-		if left_ok &&
-			monitor[[2]int{x - 1, y}] == 'M' && monitor[[2]int{x - 2, y}] == 'A' && monitor[[2]int{x - 3, y}] == 'S' {
-			sum++
+		if left_ok {
+			// add 1 if true
+			sum += aocutils.CBool2Int(monitor[[2]int{x - 1, y}] == 'M' && monitor[[2]int{x - 2, y}] == 'A' && monitor[[2]int{x - 3, y}] == 'S')
 		}
 
 		// check diagonal up left
-		if left_ok && up_ok &&
-			monitor[[2]int{x - 1, y - 1}] == 'M' && monitor[[2]int{x - 2, y - 2}] == 'A' && monitor[[2]int{x - 3, y - 3}] == 'S' {
-			sum++
+		if left_ok && up_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x - 1, y - 1}] == 'M' && monitor[[2]int{x - 2, y - 2}] == 'A' && monitor[[2]int{x - 3, y - 3}] == 'S')
 		}
 
 		// check diagonal down left
-		if left_ok && down_ok &&
-			monitor[[2]int{x - 1, y + 1}] == 'M' && monitor[[2]int{x - 2, y + 2}] == 'A' && monitor[[2]int{x - 3, y + 3}] == 'S' {
-			sum++
+		if left_ok && down_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x - 1, y + 1}] == 'M' && monitor[[2]int{x - 2, y + 2}] == 'A' && monitor[[2]int{x - 3, y + 3}] == 'S')
 		}
 
 		//check directly right
-		if right_ok &&
-			monitor[[2]int{x + 1, y}] == 'M' && monitor[[2]int{x + 2, y}] == 'A' && monitor[[2]int{x + 3, y}] == 'S' {
-			sum++
+		if right_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x + 1, y}] == 'M' && monitor[[2]int{x + 2, y}] == 'A' && monitor[[2]int{x + 3, y}] == 'S')
 		}
 
 		// check diagonal up right
-		if right_ok && up_ok &&
-			monitor[[2]int{x + 1, y - 1}] == 'M' && monitor[[2]int{x + 2, y - 2}] == 'A' && monitor[[2]int{x + 3, y - 3}] == 'S' {
-			sum++
+		if right_ok && up_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x + 1, y - 1}] == 'M' && monitor[[2]int{x + 2, y - 2}] == 'A' && monitor[[2]int{x + 3, y - 3}] == 'S')
 		}
 
 		// check diagonal down right
-		if right_ok && down_ok &&
-			monitor[[2]int{x + 1, y + 1}] == 'M' && monitor[[2]int{x + 2, y + 2}] == 'A' && monitor[[2]int{x + 3, y + 3}] == 'S' {
-			sum++
+		if right_ok && down_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x + 1, y + 1}] == 'M' && monitor[[2]int{x + 2, y + 2}] == 'A' && monitor[[2]int{x + 3, y + 3}] == 'S')
 		}
 
 		//check directly up
-		if up_ok &&
-			monitor[[2]int{x, y - 1}] == 'M' && monitor[[2]int{x, y - 2}] == 'A' && monitor[[2]int{x, y - 3}] == 'S' {
-			sum++
+		if up_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x, y - 1}] == 'M' && monitor[[2]int{x, y - 2}] == 'A' && monitor[[2]int{x, y - 3}] == 'S')
 		}
 
 		//check directly down
-		if down_ok &&
-			monitor[[2]int{x, y + 1}] == 'M' && monitor[[2]int{x, y + 2}] == 'A' && monitor[[2]int{x, y + 3}] == 'S' {
-			sum++
+		if down_ok {
+			sum += aocutils.CBool2Int(monitor[[2]int{x, y + 1}] == 'M' && monitor[[2]int{x, y + 2}] == 'A' && monitor[[2]int{x, y + 3}] == 'S')
 		}
 
 	}
@@ -131,12 +124,8 @@ func part2() {
 		if !(left_ok && right_ok && up_ok && down_ok) {
 			continue
 		}
-
-		//check for both diagonals if they have a combination of M and S (we know, that A is in the middle, because we only checked points, that have an A)
-		if ((monitor[[2]int{x - 1, y - 1}] == 'M' && monitor[[2]int{x + 1, y + 1}] == 'S') || (monitor[[2]int{x - 1, y - 1}] == 'S' && monitor[[2]int{x + 1, y + 1}] == 'M')) &&
-			((monitor[[2]int{x - 1, y + 1}] == 'M' && monitor[[2]int{x + 1, y - 1}] == 'S') || (monitor[[2]int{x - 1, y + 1}] == 'S' && monitor[[2]int{x + 1, y - 1}] == 'M')) {
-			sum++
-		}
+		sum += aocutils.CBool2Int(((monitor[[2]int{x - 1, y - 1}] == 'M' && monitor[[2]int{x + 1, y + 1}] == 'S') || (monitor[[2]int{x - 1, y - 1}] == 'S' && monitor[[2]int{x + 1, y + 1}] == 'M')) &&
+			((monitor[[2]int{x - 1, y + 1}] == 'M' && monitor[[2]int{x + 1, y - 1}] == 'S') || (monitor[[2]int{x - 1, y + 1}] == 'S' && monitor[[2]int{x + 1, y - 1}] == 'M')))
 
 	}
 
