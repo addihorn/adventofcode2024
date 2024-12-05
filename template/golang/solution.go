@@ -11,8 +11,15 @@ var inputData []string
 
 func main() {
 	inputData = aocutils.ReadInput(inputFile)
+	initializePuzzle()
 	part1()
 	part2()
+}
+
+/* Do some puzzle initialization */
+
+func initializePuzzle() {
+	_ = inputData
 }
 
 /* Solve here */
