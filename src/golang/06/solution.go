@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/inancgumus/screen"
+	"github.com/gosuri/uilive"
 )
 
 const inputFile = "input.txt"
@@ -14,10 +14,9 @@ var inputData []string
 
 func main() {
 	inputData = aocutils.ReadInput(inputFile)
-	initializePuzzle()
-	part2()
-	initializePuzzle()
+
 	part1()
+	part2()
 
 }
 
@@ -92,11 +91,11 @@ func pathIsBlocked() (int, [2]int) {
 
 }
 
-func getUniquePositions() int {
+func getUniquePositions() (bool, [][2]int) {
 	isFree, nextSpace := pathIsBlocked()
 	grid[currentLocation] = 'X'
-	positions := 1
-	steps := 1
+	positions := make([][2]int, 0)
+	positions = append(positions, currentLocation)
 
 	type spaceVisit struct {
 		position [2]int
@@ -113,17 +112,16 @@ func getUniquePositions() int {
 		default:
 			currentLocation = nextSpace
 			if !(grid[currentLocation] == 'X') {
-				positions++
+				positions = append(positions, currentLocation)
 			}
 			grid[currentLocation] = 'X'
-			steps++
 
 		}
 
 		thisSpace := spaceVisit{position: currentLocation, facing: currentFacing}
 		if slices.Contains(visitedSpaces, thisSpace) {
 			//we found a circular way
-			return -1
+			return false, nil
 		}
 		visitedSpaces = append(visitedSpaces, thisSpace)
 
@@ -133,39 +131,39 @@ func getUniquePositions() int {
 
 	}
 
-	return positions
+	return true, positions
 }
 
 func part1() {
-
-	fmt.Printf("Solution for part 1: %d\n", getUniquePositions())
+	initializePuzzle()
+	_, positions := getUniquePositions()
+	fmt.Printf("Solution for part 1: %d\n", len(positions))
 }
 
 func part2() {
-
+	writer := uilive.New()
+	writer.Start()
 	validRoadblocks := 0
 
 	// just bruteforce your way through the puzzle
-	for x := 0; x < gridSize.MaxX+1; x++ {
-		for y := 0; y < gridSize.MaxY+1; y++ {
-			// reinitialize the puzzle input
-			initializePuzzle()
+	initializePuzzle()
+	_, firstPositions := getUniquePositions()
 
-			//place obstacle
-			if grid[[2]int{x, y}] == '.' {
-				grid[[2]int{x, y}] = 'O'
-			} else {
-				continue
-			}
+	for i, possiblePos := range firstPositions[1:] {
 
-			if getUniquePositions() == -1 {
-				validRoadblocks++
-			}
-			screen.Clear()
-			fmt.Printf("Checked positions of overall grid: %.2f percent \n", float64(x*gridSize.MaxY+y)/float64(gridSize.MaxX*gridSize.MaxY)*100)
+		// reinitialize the puzzle input
 
+		//place obstacle
+
+		initializePuzzle()
+		grid[possiblePos] = 'O'
+		if f, _ := getUniquePositions(); !f {
+			validRoadblocks++
 		}
-	}
 
+		fmt.Fprintf(writer, "Checked possible positions: %2.2f percent\n", float64(i)/float64(len(firstPositions)-1)*100)
+
+	}
+	writer.Stop()
 	fmt.Printf("Solution for part 2: %d\n", validRoadblocks)
 }
