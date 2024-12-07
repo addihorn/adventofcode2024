@@ -94,7 +94,7 @@ func part1() {
 		}
 
 		if isSolvable(target, numbers) {
-			fmt.Printf("[DEBUG] Target %d was solvable \n", target)
+			//fmt.Printf("[DEBUG] Target %d was solvable \n", target)
 			sum += target
 		}
 	}
