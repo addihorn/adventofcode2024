@@ -1,6 +1,9 @@
 package aocutils
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
 
 func Min(intValues []int) int {
 	sort.Ints(intValues)
@@ -17,4 +20,8 @@ func Abs(value int) int {
 		return value * -1
 	}
 	return value
+}
+
+func OrderOfMagnitude(value int) int {
+	return int(math.Floor(math.Log10(float64(value))))
 }
