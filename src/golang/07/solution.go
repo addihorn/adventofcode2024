@@ -35,6 +35,11 @@ func isSolvable(target int, numbers []int) bool {
 		return target == 0
 	}
 
+	// calculating more will overshoot the initial target
+	if target <= 0 {
+		return false
+	}
+
 	//calculate from the back
 	newNumbers := numbers[:listLength-1]
 	numberToCheck := numbers[listLength-1]
@@ -56,6 +61,11 @@ func isSolvableByConcatination(target int, numbers []int) bool {
 	}
 	if listLength == 0 {
 		return target == 0
+	}
+
+	// calculating more will overshoot the initial target
+	if target <= 0 {
+		return false
 	}
 
 	//calculate from the back
