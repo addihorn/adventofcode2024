@@ -35,7 +35,7 @@ func (this *Gridsize) PaintGrid(grid map[[2]int]rune) {
 			if val, ok := grid[[2]int{x, y}]; ok {
 				output = output + string(val)
 			} else {
-				output = output + " "
+				output = output + "."
 			}
 
 		}
