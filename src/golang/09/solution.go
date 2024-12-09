@@ -22,11 +22,12 @@ func main() {
 var diskMap []int // the disk as a whole
 
 // stores the start and length for each block of file and free space
-var fileStarts = make(map[int]int)
-var fileBlocks = make(map[int]int)
+type storageBlock struct {
+	start, length int
+}
 
-var freeStarts = make(map[int]int)
-var freeBlocks = make(map[int]int)
+var fileBlocks = make(map[int]*storageBlock)
+var freeBlocks = make(map[int]*storageBlock)
 
 /* Do some puzzle initialization */
 
@@ -42,35 +43,29 @@ func initializePuzzle() {
 	diskMap = make([]int, diskSize)
 
 	fileId := 0
-	freeSpaceIndex := 0
 	diskSpaceIndex := 0
 
 	for i, block := range inputData[0] {
 		blockSize := block - '0'
+
+		switch i % 2 {
+		case 1:
+			freeBlocks[fileId-1] = &storageBlock{start: diskSpaceIndex, length: int(blockSize)}
+		default:
+			fileBlocks[fileId] = &storageBlock{start: diskSpaceIndex, length: int(blockSize)}
+		}
+
 		for chunk := 0; chunk < int(blockSize); chunk++ {
-			if i%2 != 0 {
 
+			switch i % 2 {
+			case 1:
 				diskMap[diskSpaceIndex] = -1
-
-				if _, ok := freeStarts[fileId-1]; !ok {
-					freeStarts[fileId-1] = diskSpaceIndex
-				}
-
 				diskSpaceIndex++
-				freeSpaceIndex++
-				freeBlocks[fileId-1]++
 
-				continue
+			default:
+				diskMap[diskSpaceIndex] = fileId
+				diskSpaceIndex++
 			}
-
-			diskMap[diskSpaceIndex] = fileId
-
-			if _, ok := fileStarts[fileId]; !ok {
-				fileStarts[fileId] = diskSpaceIndex
-			}
-			fileBlocks[fileId]++
-
-			diskSpaceIndex++
 		}
 		if i%2 == 0 {
 			fileId++
@@ -79,7 +74,6 @@ func initializePuzzle() {
 	if debug {
 		fmt.Printf("Evaluating disk of size %d\n", diskSize)
 		printDebugInfo(diskMap)
-		//fmt.Println(freeSpaces)
 	}
 
 }
@@ -95,11 +89,7 @@ func printDebugInfo(diskMap []int) {
 		}
 	}
 	fmt.Println()
-	fmt.Printf("File-Starts: %+v\n", fileStarts)
-	fmt.Printf("File-Blocks: %+v\n", fileBlocks)
 
-	fmt.Printf("Free-Starts: %+v\n", freeStarts)
-	fmt.Printf("Free-Blocks: %+v\n", freeBlocks)
 }
 
 func part1() {
@@ -150,7 +140,7 @@ func part2() {
 			break
 		}
 
-		fileLength := fileBlocks[file]
+		fileLength := fileBlocks[file].length
 		for _, free := range freeSpaces {
 
 			//only run this file if the file is (potentially) moved to the left
@@ -158,22 +148,22 @@ func part2() {
 				break
 			}
 
-			if freeBlocks[free] >= fileLength {
+			if freeBlocks[free].length >= fileLength {
 
-				start := freeStarts[free]
+				start := freeBlocks[free].start
 
 				//move on disk
 				for i := 0; i < fileLength; i++ {
 					diskCopy[start+i] = file
-					diskCopy[fileStarts[file]+i] = -1
+					diskCopy[fileBlocks[file].start+i] = -1
 				}
 
 				//make free block smaller
-				freeStarts[free] += fileLength
-				freeBlocks[free] -= fileLength
+				freeBlocks[free].start += fileLength
+				freeBlocks[free].length -= fileLength
 
 				//move file start
-				fileStarts[file] = start
+				fileBlocks[file].start = start
 
 				break
 			}
