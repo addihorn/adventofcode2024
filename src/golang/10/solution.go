@@ -13,7 +13,7 @@ var inputData []string
 
 var bfs_enables = true
 
-func main(enable_bfs bool) {
+func main() {
 	inputData = aocutils.ReadInput(inputFile)
 	initializePuzzle()
 	part1()
@@ -64,13 +64,16 @@ func floodFill() {
 		seen := []*waypoint{}
 
 		for len(queue) > 0 {
-			// as queue (BFS)
-			waypoint := queue[0]
-			queue = queue[1:]
+			var waypoint *waypoint
+			if bfs_enables {
+				waypoint = queue[0]
+				queue = queue[1:]
+			} else {
+				waypoint = queue[len(queue)-1]
+				queue = queue[:len(queue)-1]
+			}
 
 			// as stack (DFS)
-			// waypoint := queue[len(queue)-1]
-			// queue = queue[:len(queue)-1]
 
 			if !slices.Contains(seen, waypoint) {
 				//we have never been here, so add the waypoint to our seen list
