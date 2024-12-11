@@ -4,11 +4,9 @@ import (
 	"example/hello/src/golang/aocutils"
 	"fmt"
 	"math"
-	"slices"
 	"strconv"
 )
 
-const debug = true
 const inputFile = "input.txt"
 
 var inputData []string
@@ -31,49 +29,54 @@ func initializePuzzle() {
 	}
 }
 
+func simulateBlinks(stones []int, cycles int) int {
+
+	// store only the tally of each stone engraving
+	tallyList := make(map[int]int)
+	for _, stone := range stones {
+		tallyList[stone]++
+	}
+
+	for i := 0; i < cycles; i++ {
+
+		nextEvolution := make(map[int]int)
+
+		// each stone engraving behaves the same, so we can bulk-change all of these instances
+		for stone, count := range tallyList {
+			stoneNumberLength := aocutils.OrderOfMagnitude(stone) + 1
+			switch true {
+			case stone == 0:
+				nextEvolution[1] += count
+			case stoneNumberLength%2 == 0:
+				//split stone
+				left := stone / int(math.Pow10(stoneNumberLength/2))
+				right := stone % int(math.Pow10(stoneNumberLength/2))
+
+				nextEvolution[left] += count
+				nextEvolution[right] += count
+			default:
+				nextEvolution[stone*2024] += count
+			}
+		}
+		tallyList = nextEvolution
+	}
+
+	// tally up all stone engravings
+	total := 0
+	for _, count := range tallyList {
+		total += count
+	}
+
+	return total
+}
+
 /* Solve here */
 
 func part1() {
-
-	stones := slices.Clone(initialStones)
-
-	sumOfStones := 0
-	for n, stone := range stones {
-		istones := []int{stone}
-		for blinks := 0; blinks < 25; blinks++ {
-			offset := 0
-			for i, istone := range istones {
-
-				stoneNumberLength := aocutils.OrderOfMagnitude(istone) + 1
-
-				switch true {
-				case istone == 0:
-					istones[i+offset] = 1
-				case stoneNumberLength%2 == 0:
-					//split stone
-					left := istone / int(math.Pow10(stoneNumberLength/2))
-					right := istone % int(math.Pow10(stoneNumberLength/2))
-					istones = slices.Concat(istones[:i+offset], []int{left, right}, istones[i+offset+1:])
-					offset++
-				default:
-					istones[i+offset] = istone * 2024
-				}
-			}
-			if debug {
-				//fmt.Printf("	Length of stone %d after %d blinks: %d stones\n", n, blinks, len(istones))
-			}
-
-		}
-		sumOfStones += len(istones)
-		if debug {
-			fmt.Printf("Stone %d increased to %d stones. \n", n, len(istones))
-		}
-	}
-
-	fmt.Printf("Solution for part 1: %d\n", sumOfStones)
+	fmt.Printf("Solution for part 1: %d\n", simulateBlinks(initialStones, 25))
 }
 
 func part2() {
-	_ = inputData
-	fmt.Printf("Solution for part 2: %d\n", 2)
+
+	fmt.Printf("Solution for part 2: %d\n", simulateBlinks(initialStones, 75))
 }
