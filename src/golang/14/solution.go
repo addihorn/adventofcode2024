@@ -1,22 +1,27 @@
 package main
 
 import (
+	"bytes"
 	"example/hello/src/golang/aocutils"
 	"fmt"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"image/png"
+	"math/rand"
 	"os"
 	"regexp"
 	"strconv"
 
 	"github.com/gosuri/uilive"
+	"github.com/icza/mjpeg"
 )
 
 type robot struct {
 	x, y             int
 	dx, dy           int
 	x_final, y_final int
+	C, M, Y, K       uint8
 }
 
 type gameData struct {
@@ -25,7 +30,7 @@ type gameData struct {
 }
 
 const debug = false
-const printPictures = true
+const printPictures = false
 const inputFile = "input.txt"
 
 var game = gameData{width: 101, height: 103, rounds: 100}
@@ -54,6 +59,11 @@ func initializePuzzle() {
 		robotEntity.y, _ = strconv.Atoi(matches[2])
 		robotEntity.dx, _ = strconv.Atoi(matches[3])
 		robotEntity.dy, _ = strconv.Atoi(matches[4])
+
+		robotEntity.C = uint8(rand.Intn(100))
+		robotEntity.M = uint8(rand.Intn(100))
+		robotEntity.Y = uint8(rand.Intn(100))
+		robotEntity.K = uint8(rand.Intn(50)) + 50
 
 		allRobots[i] = &robotEntity
 	}
@@ -108,26 +118,53 @@ func part1() {
 }
 
 func part2() {
+	var canvas *image.Gray
+	checkErr := func(err error) {
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	writer := uilive.New()
+	framerate := int32(24)
+	aw, err := mjpeg.New("test.avi", int32(game.width), int32(game.height), framerate)
+	checkErr(err)
 	writer.Start()
-	for i := 1; i < 10000; i++ {
+
+	for i := 7500; i < 8000; i++ {
 		game.rounds = i
 		solve()
 
-		canvas := image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{game.width, game.height}})
+		canvas = image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{game.width, game.height}})
 
 		for _, robotEntity := range allRobots {
-			canvas.Set(robotEntity.x_final, robotEntity.y_final, color.White)
+			canvas.Set(
+				robotEntity.x_final, robotEntity.y_final,
+				color.White,
+			)
 		}
 
 		fmt.Fprintf(writer, "Generated images : %d/%d \n", i, 9999)
-
+		buf := new(bytes.Buffer)
+		checkErr(jpeg.Encode(buf, canvas, nil))
+		checkErr(aw.AddFrame(buf.Bytes()))
 		if printPictures {
 			file, _ := os.Create(fmt.Sprintf("images/%d.png", i))
 			png.Encode(file, canvas)
 		}
 
+		if i == 7774 {
+			for i := 0; i < int(framerate*3); i++ {
+				buf := new(bytes.Buffer)
+				checkErr(jpeg.Encode(buf, canvas, nil))
+				checkErr(aw.AddFrame(buf.Bytes()))
+			}
+
+		}
+
 	}
+
+	checkErr(aw.Close())
 	writer.Stop()
 	//solved by manually looking through all 9999 pictures
 	fmt.Printf("Solution for part 2: %d\n", 0)

@@ -1,5 +1,7 @@
 github.com/gosuri/uilive v0.0.4 h1:hUEBpQDj8D8jXgtCdBu7sWsy5sbW/5GhuO8KBwJ2jyY=
 github.com/gosuri/uilive v0.0.4/go.mod h1:V/epo5LjjlDE5RJUcqx8dbw+zc93y5Ya3yg8tfZ74VI=
+github.com/icza/mjpeg v0.0.0-20230330134156-38318e5ab8f4 h1:NUuR3iigoVwstgE2Ahn1O4OuRSK/kYS6YMmrscfbYOs=
+github.com/icza/mjpeg v0.0.0-20230330134156-38318e5ab8f4/go.mod h1:4x2PXnxyG6DTZMYpoV0JgU0y1eZvAfxW/YALnA8E2B0=
 github.com/inancgumus/screen v0.0.0-20190314163918-06e984b86ed3 h1:fO9A67/izFYFYky7l1pDP5Dr0BTCRkaQJUG6Jm5ehsk=
 github.com/inancgumus/screen v0.0.0-20190314163918-06e984b86ed3/go.mod h1:Ey4uAp+LvIl+s5jRbOHLcZpUDnkjLBROl15fZLwPlTM=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
