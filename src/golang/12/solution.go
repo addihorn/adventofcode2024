@@ -3,22 +3,27 @@ package main
 import (
 	"example/hello/src/golang/aocutils"
 	"fmt"
+	"image"
+	"image/color"
+	"image/gif"
 	"maps"
+	"math/rand"
+	"os"
 	"slices"
-	"time"
-
-	"github.com/inancgumus/screen"
 )
 
-const debug = false
-const inputFile = "input.txt"
+const debug = true
+const inputFile = "xmas.txt"
 
 var inputData []string
 
 func main() {
+
 	inputData = aocutils.ReadInput(inputFile)
+
 	initializePuzzle()
 	solve()
+
 	part1()
 	part2()
 }
@@ -31,23 +36,65 @@ type CellData struct {
 	left, right, up, down bool
 }
 
+var colorPallet = map[int]color.RGBA{
+	0:  color.RGBA{R: 102, G: 194, B: 165, A: 1},
+	1:  color.RGBA{R: 252, G: 141, B: 98, A: 1},
+	2:  color.RGBA{R: 141, G: 160, B: 203, A: 1},
+	3:  color.RGBA{R: 231, G: 138, B: 195, A: 1},
+	4:  color.RGBA{R: 166, G: 216, B: 84, A: 1},
+	5:  color.RGBA{R: 255, G: 217, B: 47, A: 1},
+	6:  color.RGBA{R: 229, G: 196, B: 148, A: 1},
+	7:  color.RGBA{R: 179, G: 179, B: 179, A: 1},
+	8:  color.RGBA{R: 0, G: 0, B: 0, A: 1},
+	9:  color.RGBA{R: 158, G: 1, B: 66, A: 1},
+	10: color.RGBA{R: 213, G: 62, B: 79, A: 1},
+	11: color.RGBA{R: 244, G: 109, B: 67, A: 1},
+	12: color.RGBA{R: 253, G: 174, B: 97, A: 1},
+	13: color.RGBA{R: 254, G: 224, B: 139, A: 1},
+	14: color.RGBA{R: 255, G: 255, B: 191, A: 1},
+	15: color.RGBA{R: 230, G: 245, B: 152, A: 1},
+	16: color.RGBA{R: 171, G: 221, B: 164, A: 1},
+	17: color.RGBA{R: 102, G: 194, B: 165, A: 1},
+	18: color.RGBA{R: 50, G: 136, B: 189, A: 1},
+	19: color.RGBA{R: 94, G: 79, B: 162, A: 1},
+}
+
 var garden = make(map[Cell]rune)
 var gardenData = make(map[Cell]*CellData)
 var gridSize *aocutils.Gridsize
+var colorGrid = make(map[rune]color.RGBA)
 
 /* Do some puzzle initialization */
 
 func initializePuzzle() {
-
+	takenColors := []int{}
 	gridSize = &aocutils.Gridsize{MinX: 0, MinY: 0, MaxX: len(inputData[0]), MaxY: len(inputData)}
 
 	for y, line := range inputData {
 		for x, plant := range line {
 			garden[[2]int{x, y}] = plant
 			gardenData[Cell{x, y}] = &CellData{plant: plant, original: plant, left: false, right: false, up: false, down: false}
+
+			if len(takenColors) == len(colorPallet) {
+				//reset taken colors
+				takenColors = []int{}
+			}
+
+			if _, ok := colorGrid[plant]; !ok {
+				r := rand.Intn(len(colorPallet))
+				for slices.Contains(takenColors, r) {
+					r = rand.Intn(len(colorPallet))
+				}
+				takenColors = append(takenColors, r)
+				colorGrid[plant] = colorPallet[r]
+			}
+
 		}
 	}
 }
+
+var images = []*image.Paletted{}
+var delays = []int{}
 
 func FloodPt2GardenPatchFrom(garden map[Cell]*CellData, startCell Cell) (area, perimeter, edges, corners int) {
 
@@ -169,7 +216,10 @@ func FloodPt2GardenPatchFrom(garden map[Cell]*CellData, startCell Cell) (area, p
 		garden[cell].plant = '.'
 
 		if debug {
-			PaintGrid(gridSize, garden)
+
+			images = append(images, PaintGrid(gridSize, garden))
+			delays = append(delays, 2)
+
 		}
 
 	}
@@ -184,9 +234,12 @@ var cost_pt2 = 0
 /* Solve here */
 func solve() {
 	gardenCopy := maps.Clone(gardenData)
+	cellsSeen := 0
+	maxCells := gridSize.MaxX * gridSize.MaxY
 
 	for x := gridSize.MinX; x < gridSize.MaxX; x++ {
 		for y := gridSize.MinY; y < gridSize.MaxY; y++ {
+			cellsSeen++
 			plant := string(gardenCopy[Cell{x, y}].plant)
 			_ = plant
 			if !(gardenCopy[Cell{x, y}].plant == 0 || gardenCopy[Cell{x, y}].plant == '.') {
@@ -201,8 +254,14 @@ func solve() {
 				}
 
 			}
+
+			if debug && cellsSeen%100 == 0 {
+				fmt.Printf("Seen cells: %d / %d\n", cellsSeen, maxCells)
+			}
+
 		}
 	}
+
 }
 
 func part1() {
@@ -212,24 +271,59 @@ func part1() {
 
 func part2() {
 
+	f, _ := os.OpenFile("rgb.gif", os.O_WRONLY|os.O_CREATE, 0600)
+	defer f.Close()
+	gif.EncodeAll(f, &gif.GIF{
+		Image:     images,
+		Delay:     delays,
+		LoopCount: -1,
+	})
+
 	fmt.Printf("Solution for part 2: %d\n", cost_pt2)
 }
 
-func PaintGrid(this *aocutils.Gridsize, grid map[Cell]*CellData) {
-	screen.Clear()
-	output := ""
+func PaintGrid(this *aocutils.Gridsize, grid map[Cell]*CellData) (canvas *image.Paletted) {
+
+	var palette = []color.Color{
+		color.RGBA{R: 102, G: 194, B: 165, A: 1},
+		color.RGBA{R: 252, G: 141, B: 98, A: 1},
+		color.RGBA{R: 141, G: 160, B: 203, A: 1},
+		color.RGBA{R: 231, G: 138, B: 195, A: 1},
+		color.RGBA{R: 166, G: 216, B: 84, A: 1},
+		color.RGBA{R: 255, G: 217, B: 47, A: 1},
+		color.RGBA{R: 229, G: 196, B: 148, A: 1},
+		color.RGBA{R: 179, G: 179, B: 179, A: 1},
+		color.RGBA{R: 0, G: 0, B: 0, A: 1},
+		color.White,
+		color.RGBA{R: 158, G: 1, B: 66, A: 1},
+		color.RGBA{R: 213, G: 62, B: 79, A: 1},
+		color.RGBA{R: 244, G: 109, B: 67, A: 1},
+		color.RGBA{R: 253, G: 174, B: 97, A: 1},
+		color.RGBA{R: 254, G: 224, B: 139, A: 1},
+		color.RGBA{R: 255, G: 255, B: 191, A: 1},
+		color.RGBA{R: 230, G: 245, B: 152, A: 1},
+		color.RGBA{R: 171, G: 221, B: 164, A: 1},
+		color.RGBA{R: 102, G: 194, B: 165, A: 1},
+		color.RGBA{R: 50, G: 136, B: 189, A: 1},
+		color.RGBA{R: 94, G: 79, B: 162, A: 1},
+	}
+
+	canvas = image.NewPaletted(image.Rectangle{image.Point{0, 0}, image.Point{gridSize.MaxX, gridSize.MaxY}}, palette)
 	for y := this.MinY; y <= this.MaxY; y++ {
 		for x := this.MinX; x <= this.MaxX; x++ {
 			if val, ok := grid[[2]int{x, y}]; ok {
-				output = output + string(val.plant)
+				if val.plant == '.' {
+					canvas.Set(x, y, colorGrid[val.original])
+				} else {
+					canvas.Set(x, y, color.White)
+				}
+
 			} else {
-				output = output + "."
+				canvas.Set(x, y, color.White)
 			}
 
 		}
-		output = output + "\n"
 	}
-	fmt.Println(output)
-	time.Sleep(time.Millisecond * 200)
+	return
 
 }
