@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"math/rand"
@@ -21,7 +22,7 @@ type robot struct {
 	x, y             int
 	dx, dy           int
 	x_final, y_final int
-	C, M, Y, K       uint8
+	R, G, B, A       uint8
 }
 
 type gameData struct {
@@ -60,10 +61,10 @@ func initializePuzzle() {
 		robotEntity.dx, _ = strconv.Atoi(matches[3])
 		robotEntity.dy, _ = strconv.Atoi(matches[4])
 
-		robotEntity.C = uint8(rand.Intn(100))
-		robotEntity.M = uint8(rand.Intn(100))
-		robotEntity.Y = uint8(rand.Intn(100))
-		robotEntity.K = uint8(rand.Intn(50)) + 50
+		robotEntity.R = uint8(rand.Intn(255))
+		robotEntity.G = uint8(rand.Intn(255))
+		robotEntity.B = uint8(rand.Intn(255))
+		robotEntity.B = uint8(rand.Intn(255))
 
 		allRobots[i] = &robotEntity
 	}
@@ -118,7 +119,16 @@ func part1() {
 }
 
 func part2() {
-	var canvas *image.Gray
+	var palette = []color.Color{
+		color.RGBA{0x00, 0x00, 0x00, 0xff}, color.RGBA{0x00, 0x00, 0xff, 0xff},
+		color.RGBA{0x00, 0xff, 0x00, 0xff}, color.RGBA{0x00, 0xff, 0xff, 0xff},
+		color.RGBA{0xff, 0x00, 0x00, 0xff}, color.RGBA{0xff, 0x00, 0xff, 0xff},
+		color.RGBA{0xff, 0xff, 0x00, 0xff}, color.RGBA{0xff, 0xff, 0xff, 0xff},
+	}
+
+	var canvas *image.Paletted
+	images := []*image.Paletted{}
+	delays := []int{}
 	checkErr := func(err error) {
 		if err != nil {
 			panic(err)
@@ -135,19 +145,21 @@ func part2() {
 		game.rounds = i
 		solve()
 
-		canvas = image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{game.width, game.height}})
-
+		canvas = image.NewPaletted(image.Rectangle{image.Point{0, 0}, image.Point{game.width, game.height}}, palette)
 		for _, robotEntity := range allRobots {
 			canvas.Set(
 				robotEntity.x_final, robotEntity.y_final,
-				color.White,
+				color.RGBA{R: robotEntity.R, G: robotEntity.G, B: robotEntity.B, A: robotEntity.A},
 			)
 		}
-
+		images = append(images, canvas)
+		delays = append(delays, 0)
 		fmt.Fprintf(writer, "Generated images : %d/%d \n", i, 9999)
 		buf := new(bytes.Buffer)
+
 		checkErr(jpeg.Encode(buf, canvas, nil))
 		checkErr(aw.AddFrame(buf.Bytes()))
+
 		if printPictures {
 			file, _ := os.Create(fmt.Sprintf("images/%d.png", i))
 			png.Encode(file, canvas)
@@ -155,6 +167,9 @@ func part2() {
 
 		if i == 7774 {
 			for i := 0; i < int(framerate*3); i++ {
+				images = append(images, canvas)
+				delays = append(delays, 1)
+
 				buf := new(bytes.Buffer)
 				checkErr(jpeg.Encode(buf, canvas, nil))
 				checkErr(aw.AddFrame(buf.Bytes()))
@@ -163,6 +178,13 @@ func part2() {
 		}
 
 	}
+
+	f, _ := os.OpenFile("rgb.gif", os.O_WRONLY|os.O_CREATE, 0600)
+	defer f.Close()
+	gif.EncodeAll(f, &gif.GIF{
+		Image: images,
+		Delay: delays, LoopCount: 3,
+	})
 
 	checkErr(aw.Close())
 	writer.Stop()
