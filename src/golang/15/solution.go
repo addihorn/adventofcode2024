@@ -1,23 +1,45 @@
 package main
 
 import (
+	"bytes"
 	"example/hello/src/golang/aocutils"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
+
+	"github.com/nsf/termbox-go"
 )
 
 const debug = false
+const demo = false
 const inputFile = "input.txt"
 
 var inputData []string
 
+var output = &bytes.Buffer{}
+
 func main() {
 	inputData = aocutils.ReadInputWithDelimeter(inputFile, "\n\n")
+
+	if demo {
+		err := termbox.Init()
+
+		if err != nil {
+			//fmt.Println(err)
+			os.Exit(1)
+		}
+
+	}
+
 	initializePuzzle()
 	part1()
 	initializePuzzleP2()
 	part2()
+
+	termbox.Close()
+	fmt.Print(output)
+
 }
 
 /* Do some puzzle initialization */
@@ -97,7 +119,7 @@ func initializePuzzleP2() {
 		}
 	}
 
-	if debug {
+	if debug || demo {
 		aocutils.Paint(warehouse, &gridSize)
 	}
 
@@ -144,7 +166,8 @@ func moveRobotFrom(wh map[gridCell]entity, cell gridCell, dir direction) (newRob
 		wh[end] = BOX
 	default:
 		// do nothing since a wall was hit
-		if debug {
+		if debug && !demo {
+
 			fmt.Println("Robot pushed things into a wall")
 		}
 	}
@@ -167,9 +190,10 @@ func part1() {
 	for i, move := range movement {
 		robot = moveRobotFrom(warehouse, robot, direction(move))
 
-		if debug {
+		if debug || demo {
 			aocutils.Paint(warehouse, &gridSize)
-			fmt.Printf("After %d moves and Move %v", i+1, move)
+			_ = i
+			//fmt.Printf("After %d moves and Move %v", i+1, move)
 		}
 	}
 
@@ -180,7 +204,13 @@ func part1() {
 		}
 	}
 
-	fmt.Printf("Solution for part 1: %d\n", gpsSum)
+	if termbox.IsInit {
+		aocutils.TBprint(0, gridSize.MaxY+2, termbox.ColorDefault, termbox.ColorDefault, fmt.Sprintf("Solution for part 1: %d\n", gpsSum))
+		termbox.Flush()
+
+	}
+
+	fmt.Fprintf(output, "Solution for part 1: %d\n", gpsSum)
 }
 
 func p2MoveRobotFrom(wh map[gridCell]entity, cell gridCell, dir direction) (newRobotPosition gridCell) {
@@ -239,7 +269,7 @@ func p2MoveRobotFrom(wh map[gridCell]entity, cell gridCell, dir direction) (newR
 
 	if dir == UP || dir == DOWN {
 		pushedTiles := checkAndPushBoxes(wh, []gridCell{cell}, dir)
-		if debug {
+		if debug && !demo {
 			fmt.Println(pushedTiles)
 		}
 
@@ -255,7 +285,7 @@ func p2MoveRobotFrom(wh map[gridCell]entity, cell gridCell, dir direction) (newR
 
 	}
 
-	if debug {
+	if debug || demo {
 		aocutils.Paint(wh, &gridSize)
 	}
 
@@ -324,9 +354,10 @@ func part2() {
 	for i, move := range movement {
 		robot = p2MoveRobotFrom(warehouse, robot, direction(move))
 
-		if debug {
+		if debug || demo {
 			aocutils.Paint(warehouse, &gridSize)
-			fmt.Printf("After %d moves and Move %v", i+1, move)
+			_ = i
+			//fmt.Printf("After %d moves and Move %v", i+1, move)
 		}
 	}
 
@@ -337,5 +368,11 @@ func part2() {
 		}
 	}
 
-	fmt.Printf("Solution for part 2: %d\n", gpsSum)
+	if termbox.IsInit {
+		aocutils.TBprint(0, gridSize.MaxY+3, termbox.ColorDefault, termbox.ColorDefault, fmt.Sprintf("Solution for part 2: %d\n", gpsSum))
+		termbox.Flush()
+	}
+
+	fmt.Fprintf(output, "Solution for part 2: %d\n", gpsSum)
+
 }

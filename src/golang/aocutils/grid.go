@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/inancgumus/screen"
+	"github.com/nsf/termbox-go"
 )
 
 type Gridsize struct {
@@ -50,20 +51,48 @@ func (this *Gridsize) PaintGrid(grid map[[2]int]rune) {
 }
 
 func Paint[K ~[2]int, V ~rune](grid map[K]V, this *Gridsize) {
-	fmt.Println(reflect.TypeOf(grid).String())
-	screen.Clear()
-	output := ""
+
+	if !termbox.IsInit {
+		screen.Clear()
+		output := ""
+		for y := this.MinY; y <= this.MaxY; y++ {
+			for x := this.MinX; x <= this.MaxX; x++ {
+				if val, ok := grid[[2]int{x, y}]; ok {
+					output = output + string(val)
+				} else {
+					output = output + "."
+				}
+
+			}
+			output = output + "\n"
+		}
+		fmt.Println(output)
+		time.Sleep(time.Millisecond * 10)
+		return
+	}
+
 	for y := this.MinY; y <= this.MaxY; y++ {
 		for x := this.MinX; x <= this.MaxX; x++ {
 			if val, ok := grid[[2]int{x, y}]; ok {
-				output = output + string(val)
+
+				fg_color := termbox.ColorLightGreen
+
+				switch val {
+				case '.':
+					val = ' '
+				case '#':
+					fg_color = termbox.ColorLightRed
+				case '@':
+					fg_color = termbox.ColorDefault
+				}
+				termbox.SetCell(x, y, rune(val), fg_color, termbox.ColorDefault)
 			} else {
-				output = output + "."
+				termbox.SetCell(x, y, ' ', termbox.ColorLightGreen, termbox.ColorDefault)
 			}
 
 		}
-		output = output + "\n"
 	}
-	fmt.Println(output)
-	time.Sleep(time.Millisecond * 10)
+	termbox.Flush()
+	time.Sleep(time.Millisecond)
+
 }
