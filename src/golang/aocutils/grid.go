@@ -3,6 +3,7 @@ package aocutils
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"time"
 
 	"github.com/inancgumus/screen"
@@ -28,6 +29,8 @@ func (this *Gridsize) RecalibrateTo(point [2]int) {
 }
 
 func (this *Gridsize) PaintGrid(grid map[[2]int]rune) {
+
+	fmt.Println(reflect.TypeOf(grid).String())
 	screen.Clear()
 	output := ""
 	for y := this.MinY; y <= this.MaxY; y++ {
@@ -44,4 +47,23 @@ func (this *Gridsize) PaintGrid(grid map[[2]int]rune) {
 	fmt.Println(output)
 	time.Sleep(time.Millisecond * 10)
 
+}
+
+func Paint[K ~[2]int, V ~rune](grid map[K]V, this *Gridsize) {
+	fmt.Println(reflect.TypeOf(grid).String())
+	screen.Clear()
+	output := ""
+	for y := this.MinY; y <= this.MaxY; y++ {
+		for x := this.MinX; x <= this.MaxX; x++ {
+			if val, ok := grid[[2]int{x, y}]; ok {
+				output = output + string(val)
+			} else {
+				output = output + "."
+			}
+
+		}
+		output = output + "\n"
+	}
+	fmt.Println(output)
+	time.Sleep(time.Millisecond * 10)
 }
