@@ -270,17 +270,19 @@ func part2() {
 	}
 
 	queue := []gridCell{goal}
-
+	seen := []gridCell{}
 	sum := 0
 	for len(queue) > 0 {
 
 		toCheck := queue[0]
-		if sum == 87 {
-			debugGrid(maze, gridSize)
+		queue = queue[1:]
+		if slices.Contains(seen, toCheck) {
+			continue
 		}
 
-		queue = queue[1:]
 		sum++
+
+		seen = append(seen, toCheck)
 
 		if maze[toCheck].cellType == START {
 			continue
@@ -293,14 +295,14 @@ func part2() {
 
 		for _, dx := range []int{-1, 1} {
 			foo := maze[gridCell{x + dx, y}]
-			if foo.difficulty < maze[goal].difficulty && foo.cellType != SEAT && !slices.Contains(queue, foo.position) && ((foo.difficulty < maze[toCheck].difficulty) || (foo.difficulty == maze[gridCell{x - dx, y}].difficulty-2 && maze[gridCell{x - dx, y}].cellType == SEAT)) {
+			if foo.difficulty < maze[goal].difficulty && foo.cellType != SEAT && (foo.difficulty < maze[toCheck].difficulty || foo.difficulty == maze[toCheck].difficulty-1001 || foo.difficulty == maze[toCheck].difficulty-2001 || foo.difficulty == maze[toCheck].difficulty+999) {
 				queue = append(queue, foo.position)
 			}
 		}
 
 		for _, dy := range []int{-1, 1} {
 			foo := maze[gridCell{x, y + dy}]
-			if foo.difficulty < maze[goal].difficulty && foo.cellType != SEAT && !slices.Contains(queue, foo.position) && ((foo.difficulty < maze[toCheck].difficulty) || (foo.difficulty == maze[gridCell{x, y - dy}].difficulty-2 && maze[gridCell{x, y - dy}].cellType == SEAT)) {
+			if foo.difficulty < maze[goal].difficulty && foo.cellType != SEAT && (foo.difficulty < maze[toCheck].difficulty || foo.difficulty == maze[toCheck].difficulty+999) {
 				queue = append(queue, foo.position)
 			}
 		}
@@ -310,7 +312,7 @@ func part2() {
 		}
 
 	}
-	debugGrid(maze, gridSize)
+	//debugGrid(maze, gridSize)
 	fmt.Printf("Solution for part 2: %d\n", sum)
 
 }
