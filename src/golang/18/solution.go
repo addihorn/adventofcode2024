@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	demo       = false
+	demo       = true
 	debug      = false
-	inputFile  = "input.txt"
-	memorySize = 70
+	inputFile  = "1.txt"
+	memorySize = 212
 	runtime    = 1024
 )
 
@@ -27,7 +27,6 @@ var inputData []string
 var output = &bytes.Buffer{}
 
 func main() {
-
 	if demo {
 		err := termbox.Init()
 		if err != nil {
@@ -148,8 +147,10 @@ func debugGrid(maze map[gridCell]*memorySpace, size *aocutils.Gridsize) {
 				case START, END:
 					fg_color = termbox.ColorLightGreen
 				case ROUTE:
+					out = '█'
 					fg_color = termbox.ColorLightYellow
 				case CORRUPT:
+					out = '█'
 					fg_color = termbox.ColorRed
 				}
 				termbox.SetCell(x, y, rune(out), fg_color, termbox.ColorDefault)
@@ -161,7 +162,7 @@ func debugGrid(maze map[gridCell]*memorySpace, size *aocutils.Gridsize) {
 	}
 	termbox.Flush()
 
-	time.Sleep(time.Microsecond * 100)
+	time.Sleep(time.Nanosecond)
 
 }
 
@@ -247,10 +248,6 @@ func solve() (route []gridCell) {
 	route = make([]gridCell, memory[goal].difficulty+1)
 	next := goal
 	for i := 0; i <= memory[goal].difficulty; i++ {
-		if debug || demo {
-			debugGrid(memory, gridSize)
-		}
-
 		route[i] = next
 		if memory[next].cellType == FREE {
 			memory[next].cellType = ROUTE
@@ -281,6 +278,9 @@ func solve() (route []gridCell) {
 			}
 		}
 
+	}
+	if debug || demo {
+		debugGrid(memory, gridSize)
 	}
 	return
 
@@ -329,11 +329,22 @@ func part2() {
 		}
 		i++
 
-		if demo {
-			debugGrid(memory, gridSize)
-		}
+		/*
+			if demo {
+				debugGrid(memory, gridSize)
+			}
+		*/
 
 	}
 
-	fmt.Fprintf(output, "Solution for part 2: %s\n", inputData[i-1])
+	if demo {
+		reverseDrop := getCellFromDataPackage(inputData[i-1])
+		memory[reverseDrop].cellType = FREE
+		reset()
+		solve()
+
+		time.Sleep(time.Second * 10)
+	}
+
+	fmt.Fprintf(output, "Solution for part 2: %d - %s\n", i-1, inputData[i-1])
 }
